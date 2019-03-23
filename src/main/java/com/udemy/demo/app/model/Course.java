@@ -1,4 +1,4 @@
-package com.udemy.demo.app.controller;
+package com.udemy.demo.app.model;
 
 public class Course {
 
