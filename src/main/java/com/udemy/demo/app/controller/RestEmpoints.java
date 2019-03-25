@@ -1,39 +1,62 @@
 package com.udemy.demo.app.controller;
 
-import org.springframework.beans.factory.annotation.Value;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.udemy.demo.app.model.Course;
+import com.udemy.demo.app.repositories.CourseRepository;
+
+import javassist.NotFoundException;
 
 @RestController
+@RequestMapping(value = "/demo/app/")
 public class RestEmpoints {
 
-	@Value("${default.course.name}")
-	private String cName;
+	@Autowired
+	CourseRepository courseRp;
 
-	@Value("${default.course.chapterCount}")
-	private int cChapterCount;
-	
-	@RequestMapping("/defaultCourse")
-	public Course getDefaultCourse(
-			@RequestParam(value = "name", defaultValue = "Spring Boot", required = false) String name,
-			@RequestParam(value = "chapterCount", defaultValue = "2", required = false) int chapterCount) {
-		return new Course(cName, cChapterCount);
+	@GetMapping("/courses")
+	public List<Course> getAllCourses() {
+		return courseRp.findAll();
 	}
 
-	@RequestMapping("/course")
-	public Course getEmpoint(@RequestParam(value = "name", defaultValue = "Spring Boot", required = false) String name,
-			@RequestParam(value = "chapterCount", defaultValue = "2", required = false) int chapterCount) {
-		return new Course(name, chapterCount);
+	@GetMapping("/course/{id}")
+	public Course getCourseId(@PathVariable(value = "id") Long id) throws NotFoundException {
+		return courseRp.findById(id).orElseThrow(() -> new NotFoundException("Course"));
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = "/register/course")
-	public String saveCourse(@RequestBody Course course) {
-		return "Your course name is " + course.getName() + " with " + course.getChapterCount()
-				+ " chapters saved successfuly";
-	};
+	@PostMapping("/addCourse")
+	public Course addCourse(@Valid @RequestBody Course course) {
+		return courseRp.save(course);
+	}
+
+	@DeleteMapping("/deleteCourse/{id}")
+	public ResponseEntity<Course> deleteCourse(@PathVariable(value = "id") Long id) throws NotFoundException {
+		Course course = courseRp.findById(id).orElseThrow(() -> new NotFoundException("Course"));
+		courseRp.delete(course);
+		return ResponseEntity.ok().build();
+	}
+
+	@PutMapping("/updateCourse/{id}")
+	public Course updateCourse(@PathVariable(value = "id") Long id, @Valid @RequestBody Course courseDetails)
+			throws NotFoundException {
+		Course course = courseRp.findById(id).orElseThrow(() -> new NotFoundException("Course"));
+		course.setName(courseDetails.getName());
+		course.setChapterCount(courseDetails.getChapterCount());
+
+		Course updateCourse = courseRp.save(course);
+		return updateCourse;
+	}
 }
