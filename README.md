@@ -1,5 +1,5 @@
 # udemy-sampledemoapp-springboot
-<b>Udemy - Spring boot from development to deployment</b>
+Udemy - Spring boot from development to deployment
 
 
 #### Requirements
